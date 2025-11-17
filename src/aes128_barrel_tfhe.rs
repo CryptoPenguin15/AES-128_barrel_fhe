@@ -4,8 +4,12 @@
 use crate::aes128_keyschedule_lut;
 use aes128_keyschedule_lut::le_load_32;
 
+#[cfg(feature = "gpu")]
+use tfhe::CompressedServerKey;
+#[cfg(not(feature = "gpu"))]
+use tfhe::generate_keys;
 use tfhe::prelude::*;
-use tfhe::{ClientKey, ConfigBuilder, FheUint32, generate_keys, set_server_key};
+use tfhe::{ClientKey, ConfigBuilder, FheUint32, set_server_key};
 
 use std::time::{Duration, Instant};
 
