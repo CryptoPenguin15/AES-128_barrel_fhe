@@ -5,40 +5,32 @@ use crate::aes128_keyschedule_lut;
 use aes128_keyschedule_lut::le_load_32;
 
 use tfhe::prelude::*;
-use tfhe::{ConfigBuilder, FheUint32, generate_keys, set_server_key, ClientKey};
+use tfhe::{ClientKey, ConfigBuilder, FheUint32, generate_keys, set_server_key};
 
 use std::time::{Duration, Instant};
 
+#[allow(dead_code)]
 fn print_hex_u8(label: &str, data: &[u8]) {
-    let hex_output: String = data
-        .iter()
-        .map(|byte| format!("{:02x}", byte))
-        .collect();
+    let hex_output: String = data.iter().map(|byte| format!("{:02x}", byte)).collect();
 
     println!("{}          {}", label, hex_output);
 }
 
 fn print_hex_u32(label: &str, data: &[u32]) {
-    let hex_output: String = data
-        .iter()
-        .map(|byte| format!("{:08x}", byte))
-        .collect();
+    let hex_output: String = data.iter().map(|byte| format!("{:08x}", byte)).collect();
 
     println!("{}          {}", label, hex_output);
 }
 
 fn print_hex_fhe_u32(label: &str, enc_data: &Vec<FheUint32>, client_key: &ClientKey) {
     let mut state: Vec<u32> = Vec::new();
-    
-    for (i, enc_value) in enc_data.iter().enumerate() {
+
+    for (_i_, enc_value) in enc_data.iter().enumerate() {
         // Decrypt each value and store it in the state array
         state.push(enc_value.decrypt(client_key));
     }
 
-    let hex_output: String = state
-        .iter()
-        .map(|byte| format!("{:08x}", byte))
-        .collect();
+    let hex_output: String = state.iter().map(|byte| format!("{:08x}", byte)).collect();
 
     println!("{}          {}", label, hex_output);
 }
@@ -699,7 +691,14 @@ pub fn aes128_encrypt(out: &mut [u8; 128], input: &[u8; 128], rkeys: &[u32]) {
     // offline-phase
     let start = Instant::now();
     let config = ConfigBuilder::default().build();
+    #[cfg(not(feature = "gpu"))]
     let (client_key, server_keys) = generate_keys(config);
+    #[cfg(feature = "gpu")]
+    let client_key = ClientKey::generate(config);
+    #[cfg(feature = "gpu")]
+    let compressed_server_key = CompressedServerKey::new(&client_key);
+    #[cfg(feature = "gpu")]
+    let gpu_key = compressed_server_key.decompress_to_gpu();
     println!("gen keys time       {:.2?}", start.elapsed());
 
     // use vector since FheUint32
@@ -734,7 +733,10 @@ pub fn aes128_encrypt(out: &mut [u8; 128], input: &[u8; 128], rkeys: &[u32]) {
     println!("client enc state    {:.2?}", start.elapsed());
 
     // cloud setup
+    #[cfg(not(feature = "gpu"))]
     set_server_key(server_keys);
+    #[cfg(feature = "gpu")]
+    set_server_key(gpu_key);
 
     let mut tot_ark = Duration::ZERO;
     let mut tot_sbox = Duration::ZERO;
@@ -781,7 +783,7 @@ pub fn aes128_encrypt(out: &mut [u8; 128], input: &[u8; 128], rkeys: &[u32]) {
     ark(&mut state, &rkeys[320..352]);
     let start_ark = Instant::now();
     ark_fhe(&mut enc_state, &enc_rkeys[320..352]);
-    print_hex_fhe_u32("ark     ", &enc_state, &client_key);    
+    print_hex_fhe_u32("ark     ", &enc_state, &client_key);
     tot_ark += start_ark.elapsed();
 
     // decrypt state using client key
