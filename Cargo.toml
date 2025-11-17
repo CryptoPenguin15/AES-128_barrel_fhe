@@ -1,0 +1,19 @@
+[package]
+name = "aes_barrel_tfhe"
+version = "0.1.0"
+edition = "2024"
+
+[features]
+default = []
+cpu = []
+gpu = ["tfhe/gpu"]
+
+[dependencies]
+tfhe = { version = "1.4.2", features = ["integer"] }
+# GPU enabled manually in the static Cargo.toml
+# tfhe = { version = "1.4.2", features = ["integer", "gpu"] }
+array-init = "2.1.0"
+aes="0.8.4"
+
+[profile.release]
+lto = "fat"
