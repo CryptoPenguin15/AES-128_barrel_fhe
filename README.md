@@ -9,9 +9,17 @@
 - [NIST Special Publication 800-38A](https://nvlpubs.nist.gov/nistpubs/legacy/sp/nistspecialpublication800-38a.pdf)
 
 # GPU trials
-1xNVIDIA T4
+1 x NVIDIA L4
+![NVIDIA L4](images/L4.png)
+
+1 x NVIDIA T4
 ![NVIDIA T4](images/T4.png)
 
-nvidia-smi monitoring
-![nvidia-smi](images/nvidia-smi.png)
+
+## nvidia-smi monitoring
+L4
+![nvidia-smi](images/L4_nvidia-smi.png)
+
+T4
+![nvidia-smi](images/T4_nvidia-smi.png)
 
