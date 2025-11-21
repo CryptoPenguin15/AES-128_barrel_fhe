@@ -1,6 +1,18 @@
 # Design
 
+- **Semi-fixsliced** ShiftRows used.
 - **GPU:** Enable in Cargo.toml and build with flag '--features gpu'.
+
+## State Representation
+
+AES state = 16 × `FheUint32`
+
+Row/Col | 0   | 1   | 2   | 3
+--------|-----|-----|-----|----
+0       | 0   | 4   | 8   | 12
+1       | 1   | 5   | 9   | 13
+2       | 2   | 6   | 10  | 14
+3       | 3   | 7   | 11  | 15
 
 # References
 - [Fixslicing AES-like Ciphers](https://eprint.iacr.org/2020/1123.pdf)
@@ -26,4 +38,3 @@ L4
 
 T4
 ![nvidia-smi](images/T4_nvidia-smi.png)
-
